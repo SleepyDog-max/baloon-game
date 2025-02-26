@@ -18,67 +18,72 @@
         h1 {
             color: #ff4500;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            font-size: 1.5em; /* Responsive font size */
         }
         #sky {
             position: relative;
-            height: 50%; /* Reduced to make room for summary */
+            height: 50%;
             background: rgba(255, 255, 255, 0.2);
             border-radius: 15px;
-            padding: 20px;
+            padding: 10px; /* Reduced padding for mobile */
             margin-bottom: 20px;
         }
         .property {
-            font-size: 22px;
+            font-size: 1.2em; /* Responsive font size */
             color: #1a237e;
             text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
-            margin: 20px 0;
+            margin: 15px 0; /* Reduced margin for mobile */
         }
         .balloon-container {
             position: absolute;
-            top: 50%;
+            top: 60%; /* Adjusted to lower position for mobile */
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 100%;
+            width: 90%; /* Responsive width */
             text-align: center;
+            display: flex;
+            justify-content: center; /* Ensure parallel positioning */
+            flex-wrap: wrap; /* Allow wrapping on very small screens */
+            gap: 10px; /* Spacing between balloons */
         }
         .balloon {
-            display: inline-block;
-            width: 150px;
-            height: 200px;
+            width: 80px; /* Smaller balloons for mobile */
+            height: 120px; /* Smaller balloons for mobile */
             background: radial-gradient(circle at 30% 30%, #fff, #ff69b4);
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             text-align: center;
-            line-height: 200px;
-            font-size: 18px;
+            line-height: 120px; /* Adjusted for smaller height */
+            font-size: 0.9em; /* Smaller text for mobile */
             color: #fff;
             text-shadow: 1px 1px 2px #000;
             cursor: pointer;
             transition: transform 0.2s, opacity 0.5s;
-            margin: 0 10px;
+            margin: 0; /* Removed margin for flex layout */
         }
         .balloon:hover {
             transform: scale(1.1);
         }
         .balloon.selected {
-            border: 5px solid #ffd700; /* Highlight selected balloons */
+            border: 3px solid #ffd700; /* Thinner border for smaller balloons */
         }
         .popped {
             opacity: 0;
             transform: scale(0.5);
         }
         #feedback {
-            margin-top: 20px;
-            padding: 10px;
+            margin-top: 15px; /* Reduced margin for mobile */
+            padding: 8px; /* Reduced padding for mobile */
             border-radius: 5px;
             background: #ffd700;
             color: #333;
             font-weight: bold;
+            font-size: 0.9em; /* Smaller text for mobile */
             display: inline-block;
         }
         button {
-            padding: 12px 25px;
-            margin: 10px;
-            font-size: 18px;
+            padding: 10px 20px; /* Reduced padding for mobile */
+            margin: 8px; /* Reduced margin for mobile */
+            font-size: 1em; /* Responsive font size */
             background: #ff4500;
             color: white;
             border: none;
@@ -91,8 +96,8 @@
         }
         #summary {
             display: none;
-            margin-top: 20px;
-            padding: 15px;
+            margin-top: 15px; /* Reduced margin for mobile */
+            padding: 12px; /* Reduced padding for mobile */
             background: rgba(255, 255, 255, 0.9);
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -100,15 +105,30 @@
             max-width: 90%;
             margin-left: auto;
             margin-right: auto;
-            overflow-y: auto; /* Ensure summary scrolls if too long */
-            max-height: 40vh; /* Limit height to prevent overflow */
+            overflow-y: auto;
+            max-height: 30vh; /* Reduced height for mobile */
+            font-size: 0.9em; /* Smaller text for mobile */
         }
         #summary h2 {
             color: #ff4500;
+            font-size: 1.2em; /* Responsive font size */
         }
         #summary p {
-            margin: 10px 0;
+            margin: 8px 0; /* Reduced margin for mobile */
             color: #333;
+        }
+
+        /* Media queries for larger screens */
+        @media (min-width: 768px) {
+            h1 { font-size: 2em; }
+            .property { font-size: 1.5em; margin: 20px 0; }
+            .balloon { width: 120px; height: 160px; line-height: 160px; font-size: 1.1em; }
+            .balloon.selected { border: 5px solid #ffd700; }
+            #feedback { font-size: 1em; margin-top: 20px; padding: 10px; }
+            button { padding: 12px 25px; margin: 10px; font-size: 1.2em; }
+            #summary { font-size: 1em; margin-top: 20px; padding: 15px; max-height: 40vh; }
+            #summary h2 { font-size: 1.5em; }
+            #summary p { margin: 10px 0; }
         }
     </style>
 </head>
