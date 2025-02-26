@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloon Logic Match</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #87ceeb, #e0f7fa);
+            color: #333;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            color: #ff4500;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #sky {
+            position: relative;
+            height: 50%; /* Reduced to make room for summary */
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .property {
+            font-size: 22px;
+            color: #1a237e;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+            margin: 20px 0;
+        }
+        .balloon-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            text-align: center;
+        }
+        .balloon {
+            display: inline-block;
+            width: 150px;
+            height: 200px;
+            background: radial-gradient(circle at 30% 30%, #fff, #ff69b4);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            text-align: center;
+            line-height: 200px;
+            font-size: 18px;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.5s;
+            margin: 0 10px;
+        }
+        .balloon:hover {
+            transform: scale(1.1);
+        }
+        .balloon.selected {
+            border: 5px solid #ffd700; /* Highlight selected balloons */
+        }
+        .popped {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+        #feedback {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #ffd700;
+            color: #333;
+            font-weight: bold;
+            display: inline-block;
+        }
+        button {
+            padding: 12px 25px;
+            margin: 10px;
+            font-size: 18px;
+            background: #ff4500;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #e63900;
+        }
+        #summary {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            overflow-y: auto; /* Ensure summary scrolls if too long */
+            max-height: 40vh; /* Limit height to prevent overflow */
+        }
+        #summary h2 {
+            color: #ff4500;
+        }
+        #summary p {
+            margin: 10px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Balloon Logic Match</h1>
+    <div id="sky">
+        <div id="property" class="property"></div>
+        <div id="balloons" class="balloon-container"></div>
+    </div>
+    <div id="feedback"></div>
+    <button id="nextButton" onclick="nextProperty()" disabled>Next Property</button>
+    <button id="restartButton" onclick="restartGame()">Restart Game</button>
+    <p>Score: <span id="score">0</span>/6</p>
+    <div id="summary"></div>
+
+    <script>
+        const properties = [
+            { text: "Can be loud or quiet", utterance: true, sentence: false, proposition: false, explanation: "Only utterances can vary in volume, like speech or noise." },
+            { text: "Can be grammatical or not grammatical", utterance: true, sentence: true, proposition: false, explanation: "Both utterances and sentences can follow or break grammatical rules, but propositions are abstract and don’t have grammatical form." },
+            { text: "Can be true or false", utterance: false, sentence: true, proposition: true, explanation: "Sentences and propositions can have truth values, but utterances are actions or sounds, not truth-bearing." },
+            { text: "In a particular regional accent", utterance: true, sentence: false, proposition: false, explanation: "Utterances can have accents, but sentences and propositions are abstract and accent-neutral." },
+            { text: "In a particular language", utterance: true, sentence: true, proposition: false, explanation: "Utterances and sentences can be in a specific language, but propositions are language-independent." },
+            { text: "Can have meaning", utterance: true, sentence: true, proposition: true, explanation: "All three can convey meaning, but in different ways: utterances as actions, sentences as structures, propositions as content." }
+        ];
+
+        const categories = ["Utterance", "Sentence", "Proposition"];
+
+        let currentPropertyIndex = 0;
+        let score = 0;
+        let selectedBalloons = []; // Track selected balloons for multi-answer properties
+
+        function loadProperty() {
+            if (currentPropertyIndex >= properties.length) {
+                showSummary();
+                return;
+            }
+            const prop = properties[currentPropertyIndex];
+            document.getElementById("property").innerHTML = prop.text;
+            document.getElementById("feedback").innerHTML = "";
+            document.getElementById("summary").style.display = "none";
+            selectedBalloons = []; // Reset selections
+            document.getElementById("nextButton").disabled = true; // Disable "Next Property" until all correct answers are selected
+            spawnBalloons();
+            document.getElementById("nextButton").style.display = "inline";
+        }
+
+        function spawnBalloons() {
+            const balloonsDiv = document.getElementById("balloons");
+            balloonsDiv.innerHTML = "";
+            categories.forEach((category, index) => {
+                const balloon = document.createElement("div");
+                balloon.className = "balloon";
+                balloon.innerHTML = category;
+                balloon.style.background = `radial-gradient(circle at 30% 30%, #fff, ${getRandomColor()})`;
+                balloon.onclick = () => checkAnswer(category, balloon);
+                balloonsDiv.appendChild(balloon);
+            });
+        }
+
+        function getRandomColor() {
+            const colors = [
+                "#ff1493", // Deep Pink
+                "#00ff7f", // Spring Green
+                "#ff4500", // Orange Red
+                "#1e90ff", // Dodger Blue
+                "#ffd700", // Gold
+                "#9400d3", // Dark Violet
+                "#32cd32"  // Lime Green
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function checkAnswer(selected, balloon) {
+            const prop = properties[currentPropertyIndex];
+            if (selectedBalloons.includes(selected)) {
+                // Deselect if already selected
+                selectedBalloons = selectedBalloons.filter(cat => cat !== selected);
+                balloon.classList.remove("selected");
+            } else {
+                // Select if not already selected
+                selectedBalloons.push(selected);
+                balloon.classList.add("selected");
+            }
+
+            let correctCategories = [];
+            if (prop.utterance) correctCategories.push("Utterance");
+            if (prop.sentence) correctCategories.push("Sentence");
+            if (prop.proposition) correctCategories.push("Proposition");
+
+            if (selectedBalloons.length === correctCategories.length && selectedBalloons.every(cat => correctCategories.includes(cat))) {
+                score++;
+                document.getElementById("feedback").innerHTML = `Correct! ${prop.explanation}`;
+                document.getElementById("nextButton").disabled = false; // Enable "Next Property" when all correct answers are selected
+            } else if (selectedBalloons.length > 0 && !selectedBalloons.every(cat => correctCategories.includes(cat))) {
+                document.getElementById("feedback").innerHTML = `Incorrect. Try again. The correct categories are: ${correctCategories.join(" and ")}. ${prop.explanation}`;
+                // Allow deselecting to correct mistakes
+            }
+
+            document.getElementById("score").innerHTML = score;
+            disableBalloons();
+        }
+
+        function disableBalloons() {
+            const balloons = document.querySelectorAll(".balloon");
+            balloons.forEach(balloon => balloon.style.pointerEvents = "none");
+            setTimeout(() => {
+                balloons.forEach(balloon => balloon.style.pointerEvents = "auto"); // Re-enable after feedback
+            }, 1000);
+        }
+
+        function nextProperty() {
+            currentPropertyIndex++;
+            loadProperty();
+        }
+
+        function showSummary() {
+            document.getElementById("sky").innerHTML = "<h2>Game Over!</h2>";
+            document.getElementById("feedback").innerHTML = `Final Score: ${score}/6`;
+            document.getElementById("nextButton").style.display = "none";
+            document.getElementById("restartButton").style.display = "inline";
+            const summaryDiv = document.getElementById("summary");
+            summaryDiv.style.display = "block";
+            let summaryHTML = "<h2>Correct Answers & Explanations</h2>";
+            properties.forEach((prop, index) => {
+                let correctCategories = [];
+                if (prop.utterance) correctCategories.push("Utterance");
+                if (prop.sentence) correctCategories.push("Sentence");
+                if (prop.proposition) correctCategories.push("Proposition");
+                summaryHTML += `<p><strong>Property ${index + 1}:</strong> "${prop.text}" → ${correctCategories.join(" and ")}<br>${prop.explanation}</p>`;
+            });
+            summaryDiv.innerHTML = summaryHTML;
+        }
+
+        function restartGame() {
+            currentPropertyIndex = 0;
+            score = 0;
+            selectedBalloons = [];
+            document.getElementById("score").innerHTML = score;
+            document.getElementById("sky").innerHTML = `
+                <div id="property" class="property"></div>
+                <div id="balloons" class="balloon-container"></div>
+            `;
+            document.getElementById("feedback").innerHTML = "";
+            document.getElementById("summary").style.display = "none";
+            document.getElementById("nextButton").disabled = true;
+            loadProperty();
+        }
+
+        // Start the game
+        loadProperty();
+    </script>
+</body>
+</html>
